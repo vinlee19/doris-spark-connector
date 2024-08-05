@@ -25,7 +25,7 @@ import org.apache.spark.sql.sources._
 import org.slf4j.Logger
 
 import java.sql.{Date, Timestamp}
-import java.time.Duration
+import java.time.{Duration, LocalDate}
 import java.util.concurrent.locks.LockSupport
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -51,6 +51,7 @@ private[spark] object Utils {
   def compileFilter(filter: Filter, dialect: JdbcDialect, inValueLengthLimit: Int): Option[String] = {
     Option(filter match {
       case EqualTo(attribute, value) => s"${quote(attribute)} = ${compileValue(value)}"
+      case Not(EqualTo(attribute, value)) => s"${quote(attribute)} != ${compileValue(value)}"
       case GreaterThan(attribute, value) => s"${quote(attribute)} > ${compileValue(value)}"
       case GreaterThanOrEqual(attribute, value) => s"${quote(attribute)} >= ${compileValue(value)}"
       case LessThan(attribute, value) => s"${quote(attribute)} < ${compileValue(value)}"
@@ -83,6 +84,12 @@ private[spark] object Utils {
         } else {
           null
         }
+      case StringContains(attribute, value) => s"${quote(attribute)} like '%$value%'"
+      case Not(StringContains(attribute, value)) => s"${quote(attribute)} not like '%$value%'"
+      case StringEndsWith(attribute, value) => s"${quote(attribute)} like '%$value'"
+      case Not(StringEndsWith(attribute, value)) => s"${quote(attribute)} not like '%$value'"
+      case StringStartsWith(attribute, value) => s"${quote(attribute)} like '$value%'"
+      case Not(StringStartsWith(attribute, value)) => s"${quote(attribute)} not like '$value%'"
       case _ => null
     })
   }
@@ -106,6 +113,7 @@ private[spark] object Utils {
     case stringValue: String => s"'${escapeSql(stringValue)}'"
     case timestampValue: Timestamp => "'" + timestampValue + "'"
     case dateValue: Date => "'" + dateValue + "'"
+    case dateValue: LocalDate => "'" + dateValue + "'"
     case arrayValue: Array[Any] => arrayValue.map(compileValue).mkString(", ")
     case _ => value
   }
