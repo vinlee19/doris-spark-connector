@@ -17,6 +17,11 @@
 
 package org.apache.doris.spark.cfg;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public interface ConfigurationOptions {
     // doris fe node address
     String DORIS_FENODES = "doris.fenodes";
@@ -54,7 +59,8 @@ public interface ConfigurationOptions {
     int DORIS_TABLET_SIZE_MIN = 1;
 
     String DORIS_BATCH_SIZE = "doris.batch.size";
-    int DORIS_BATCH_SIZE_DEFAULT = 1024;
+    int DORIS_BATCH_SIZE_DEFAULT = 4064;
+    int DORIS_BATCH_SIZE_MAX = 65535;
 
     String DORIS_EXEC_MEM_LIMIT = "doris.exec.mem.limit";
     long DORIS_EXEC_MEM_LIMIT_DEFAULT = 8L * 1024 * 1024 * 1024;
@@ -139,5 +145,26 @@ public interface ConfigurationOptions {
 
     String LOAD_MODE = "doris.sink.load.mode";
     String DEFAULT_LOAD_MODE = "stream_load";
+
+    /**
+     * partial_columns
+     */
+
+    String PARTIAL_COLUMNS= "partial_columns";
+
+    /**
+     * Group commit
+     */
+    String GROUP_COMMIT = "group_commit";
+    Set<String> immutableGroupMode = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "sync_mode",
+            "async_mode",
+            "off_mode"
+    )));
+
+    String DORIS_READ_MODE = "doris.read.mode";
+    String DORIS_READ_MODE_DEFAULT = "thrift";
+
+    String DORIS_ARROW_FLIGHT_SQL_PORT = "doris.arrow-flight-sql.port";
 
 }
